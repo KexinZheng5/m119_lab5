@@ -29,11 +29,11 @@ async def main():
 
     gui = game.Game(False)
     #devices = [device1, device2]
-    await asyncio.gather(connect(1, device1), connect(2, device2))
+    await asyncio.gather(connect(1, gui, device1), connect(2, gui, device2))
     #await asyncio.gather(*(connect(device) for device in devices))
 
 
-async def connect(id, device):
+async def connect(id, gui, device):
     print("starting", device, "loop")
     async with BleakClient(device) as client:
         print("connect to", device)
@@ -47,9 +47,12 @@ async def connect(id, device):
                             # Read value and update bar position
                             value = bytes(await client.read_gatt_char(char.uuid))
                             IMU = byteToFloat(value)
+                            gui.update_bar(id, IMU[0])
+                            gui.update_frame()
+                            # for debugging
                             print(device)
                             printIMU(IMU)
-                            # 
+
                             await asyncio.sleep(0)
                     except Exception as e:
                         print(e)
