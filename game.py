@@ -21,6 +21,8 @@ class Game():
     bar1_y = 0
     bar1_offset = 0
 
+    threshold = 0.15
+
     # bar size and postion
     bar2 = None
     bar2_x = 100
@@ -62,7 +64,7 @@ class Game():
 
 
     # initialize window
-    def _init_(self, mode):
+    def __init__(self, mode):
         self.window = self.create_animation_window()
         self.canvas = self.create_animation_canvas(self.window)
         self.mode = mode
@@ -81,33 +83,50 @@ class Game():
         else:
             self.bar2 = self.draw_bar(self.bar2_x, self.bar2_y)
             
-    
-    #def update_bar(num, value):
-        
-    # update bar position
+    # update frame
     def update_frame(self):
         self.update_bar()
         self.update_display()
         self.update_ball()
         self.window.update()
 
+    # update bar position based on current offset
     def update_bar(self):
-        self.canvas.move(self.bar1, 0, self.bar1_offset)
+        # out of lower bound
+        if self.bar1_offset + self.bar1_y > self.window_height - self.bar_height/2:
+            self.bar1_y = self.window_height - self.bar_height/2
+            self.canvas.delete(self.bar1)
+            self.bar1 = self.draw_bar(self.bar1_x, self.bar1_y)
+        # out of lower bound
+        elif self.bar1_offset + self.bar1_y < self.bar_height/2:
+            self.bar1_y = self.bar_height/2
+            self.canvas.delete(self.bar1)
+            self.bar1 = self.draw_bar(self.bar1_x, self.bar1_y)
+        # otherwise
+        else: 
+            self.canvas.move(self.bar1, 0, self.bar1_offset)
+        print("bar1 offset:", self.bar1_offset)
         if not self.mode:
-            self.canvas.move(self.bar2, 0, self.bar1_offset)
+            if self.bar2_offset + self.bar2_y > self.window_height:
+                pass
+            else: 
+                self.canvas.move(self.bar2, 0, self.bar2_offset)
+            print("bar2 offset:", self.bar2_offset)
 
     # update bar offset given user input
     def update_bar_offset(self, id, value):
+        # player 1
         if id == 1:
-            if value < -0.3 or value > 0.3:
+            if value < -self.threshold or value > self.threshold:
                 self.bar1_offset = value * 20
             else:
-                self.bar1.offset = 0
+                self.bar1_offset = 0
+        # player 2
         else:
-            if value < -0.3 or value > 0.3:
+            if value < -self.threshold or value > self.threshold:
                 self.bar2_offset = value * 20
             else:
-                self.bar2.offset = 0
+                self.bar2_offset = 0
 
     # draw bar
     def draw_bar(self, x, y):
@@ -147,6 +166,7 @@ class Game():
         elif self.ball_x - self.radius/2 > self.window_width:
             self.p1_score -= 1
             self.reset_ball()
+        # left player out of bound
         elif not self.mode and self.ball_x + self.radius/2 < 0:
             self.p2_score -= 1
             self.reset_ball()
@@ -170,13 +190,15 @@ class Game():
 
     # update player score display
     def update_display(self):
+        # player 1
         if self.p1_display is not None:
             self.canvas.delete(self.p1_display)
         self.p1_display = self.canvas.create_text(1100, self.window_height / 2, text=str(self.p1_score), fill="#38271d", font=('Calibri 300'))
+        # player 2
         if not self.mode:
             if self.p2_display is not None:
-                self.canvas.delete(self.p1_display)
-            self.p2_display = self.canvas.create_text(400, self.window_height / 2, text=str(self.p1_score), fill="#38271d", font=('Calibri 300'))
+                self.canvas.delete(self.p2_display)
+            self.p2_display = self.canvas.create_text(400, self.window_height / 2, text=str(self.p2_score), fill="#38271d", font=('Calibri 300'))
     
 
     def on_close(self):

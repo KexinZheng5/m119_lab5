@@ -6,7 +6,7 @@ from bleak import BleakClient
 import game
 
 # discover devices
-async def discover():
+async def discover(mode):
     # search for devices
     devices = await BleakScanner.discover()
     print("Devices detected: ")
@@ -17,20 +17,29 @@ async def discover():
     
     # select device to connect to
     num1 = input("Select player 1: ")
-    num2 = input("Select player 2: ")
+    if mode == 2:
+        num2 = input("Select player 2: ")
+    else:
+        num2 = 1
     return devices[int(num1)-1], devices[int(num2)-1]
 
 
 async def main():
     try:
+        # get game modes and devices
+        mode = input("Single player (1) / 2 player (2):")
         device1, device2 = await discover()
     except e:
         print("ERROR: invalid input")
 
+    # set up gui
     gui = game.Game(False)
-    #devices = [device1, device2]
-    await asyncio.gather(connect(1, gui, device1), connect(2, gui, device2))
-    #await asyncio.gather(*(connect(device) for device in devices))
+
+    # connect to device(s)
+    if mode == 1:
+        await asyncio.gather(connect(1, gui, device1))
+    else:
+        await asyncio.gather(connect(1, gui, device1), connect(2, gui, device2))
 
 
 async def connect(id, gui, device):
@@ -43,15 +52,15 @@ async def connect(id, gui, device):
                 if "read" in char.properties:
                     # Assumes there's only one readable characteristic
                     try:
-                        while(True):
+                        while(not gui.exit):
                             # Read value and update bar position
                             value = bytes(await client.read_gatt_char(char.uuid))
                             IMU = byteToFloat(value)
-                            gui.update_bar(id, IMU[0])
+                            gui.update_bar_offset(id, IMU[0])
                             gui.update_frame()
                             # for debugging
                             print(device)
-                            printIMU(IMU)
+                            #printIMU(IMU)
 
                             await asyncio.sleep(0)
                     except Exception as e:
