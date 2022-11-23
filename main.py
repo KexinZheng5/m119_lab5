@@ -25,20 +25,23 @@ async def discover(mode):
 
 
 async def main():
+    # get game modes and devices
+    mode = input("Single player (1) / 2 player (2):")
+    mode = int(mode)
     try:
-        # get game modes and devices
-        mode = input("Single player (1) / 2 player (2):")
-        device1, device2 = await discover()
+        device1, device2 = await discover(mode)
     except e:
         print("ERROR: invalid input")
 
-    # set up gui
-    gui = game.Game(False)
 
     # connect to device(s)
     if mode == 1:
+        # set up gui
+        gui = game.Game(True)
         await asyncio.gather(connect(1, gui, device1))
     else:
+        # set up gui
+        gui = game.Game(False)
         await asyncio.gather(connect(1, gui, device1), connect(2, gui, device2))
 
 
@@ -56,10 +59,10 @@ async def connect(id, gui, device):
                             # Read value and update bar position
                             value = bytes(await client.read_gatt_char(char.uuid))
                             IMU = byteToFloat(value)
-                            gui.update_bar_offset(id, IMU[0])
+                            gui.update_bar_offset(id, IMU[1])
                             gui.update_frame()
                             # for debugging
-                            print(device)
+                            #print(device)
                             #printIMU(IMU)
 
                             await asyncio.sleep(0)

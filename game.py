@@ -21,7 +21,7 @@ class Game():
     bar1_y = 0
     bar1_offset = 0
 
-    threshold = 0.15
+    threshold = 0.2
 
     # bar size and postion
     bar2 = None
@@ -50,7 +50,7 @@ class Game():
     # main window of the animation
     def create_animation_window(self):
         window = tkinter.Tk()
-        window.title("Pong (2 player)")
+        window.title("Pong")
         window.geometry(f'{self.window_width}x{self.window_height}')
         window.protocol("WM_DELETE_WINDOW", self.on_close)
         return window
@@ -81,6 +81,7 @@ class Game():
             self.canvas.create_rectangle(0, 0, self.thickness, self.window_height, fill="#737373", outline="")
         # multi player mode
         else:
+            print(self.mode, mode)
             self.bar2 = self.draw_bar(self.bar2_x, self.bar2_y)
             
     # update frame
@@ -92,6 +93,7 @@ class Game():
 
     # update bar position based on current offset
     def update_bar(self):
+        # player 1
         # out of lower bound
         if self.bar1_offset + self.bar1_y > self.window_height - self.bar_height/2:
             self.bar1_y = self.window_height - self.bar_height/2
@@ -105,26 +107,36 @@ class Game():
         # otherwise
         else: 
             self.canvas.move(self.bar1, 0, self.bar1_offset)
-        print("bar1 offset:", self.bar1_offset)
+            self.bar1_y += self.bar1_offset
+        # player 2    
         if not self.mode:
-            if self.bar2_offset + self.bar2_y > self.window_height:
-                pass
+            # out of lower bound
+            if self.bar2_offset + self.bar2_y > self.window_height - self.bar_height/2:
+                self.bar2_y = self.window_height - self.bar_height/2
+                self.canvas.delete(self.bar2)
+                self.bar2 = self.draw_bar(self.bar2_x, self.bar2_y)
+            # out of lower bound
+            elif self.bar2_offset + self.bar2_y < self.bar_height/2:
+                self.bar2_y = self.bar_height/2
+                self.canvas.delete(self.bar2)
+                self.bar2 = self.draw_bar(self.bar2_x, self.bar2_y)
+            # otherwise
             else: 
                 self.canvas.move(self.bar2, 0, self.bar2_offset)
-            print("bar2 offset:", self.bar2_offset)
+                self.bar2_y += self.bar2_offset
 
     # update bar offset given user input
     def update_bar_offset(self, id, value):
         # player 1
         if id == 1:
             if value < -self.threshold or value > self.threshold:
-                self.bar1_offset = value * 20
+                self.bar1_offset = value * 40
             else:
                 self.bar1_offset = 0
         # player 2
         else:
             if value < -self.threshold or value > self.threshold:
-                self.bar2_offset = value * 20
+                self.bar2_offset = value * 40
             else:
                 self.bar2_offset = 0
 
