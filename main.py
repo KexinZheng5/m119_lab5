@@ -1,3 +1,7 @@
+# main game
+# pong game that supports single and 2 player
+# 2 player mode requres 2 arduino devices connected to the computer via BLE
+
 import asyncio
 import struct
 from bleak import BleakScanner
@@ -35,11 +39,11 @@ async def main():
 
 
     # connect to device(s)
-    if mode == 1:
+    if mode == 1: # single player mode
         # set up gui
         gui = game.Game(True)
         await asyncio.gather(connect(1, gui, device1))
-    else:
+    else: # 2 player mode
         # set up gui
         gui = game.Game(False)
         await asyncio.gather(connect(1, gui, device1), connect(2, gui, device2))
@@ -86,6 +90,7 @@ def printIMU(arr):
     for i in range(6):
         print(types[i], ":", arr[i], end="\t")
     print()
+
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
